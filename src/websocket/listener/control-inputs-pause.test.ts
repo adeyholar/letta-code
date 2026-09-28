@@ -154,7 +154,7 @@ describe("abort_message parks queued user messages", () => {
     expect(cancelRun).not.toHaveBeenCalled();
   });
 
-  test("agent-free abort cancels the persisted conversation without a run agent", async () => {
+  test("worker abort fences replacement turns until conversation cancellation settles", async () => {
     const listener = createRuntime();
     setActiveRuntime(listener);
     const runtime = getOrCreateScopedRuntime(
@@ -170,6 +170,10 @@ describe("abort_message parks queued user messages", () => {
     const cancelRun = mock(async () => {});
     const cancellations: Array<{ agentId: string; conversationId: string }> =
       [];
+    let finishBackendCancellation: (() => void) | undefined;
+    const backendCancellation = new Promise<void>((resolve) => {
+      finishBackendCancellation = resolve;
+    });
     const cancelled = await handleAbortMessageInput(
       listener,
       {
@@ -186,6 +190,7 @@ describe("abort_message parks queued user messages", () => {
         cancelRun,
         cancelConversation: async (agentId, conversationId) => {
           cancellations.push({ agentId, conversationId });
+          await backendCancellation;
         },
       },
     );
@@ -195,11 +200,22 @@ describe("abort_message parks queued user messages", () => {
       { agentId: "", conversationId: "local-conv-worker" },
     ]);
     expect(cancelRun).not.toHaveBeenCalled();
-    finishListenerTurn(runtime, lease, {
-      stopReason: "cancelled",
-      socket: createOpenTransport(),
-      conversationId: "local-conv-worker",
-    });
+    expect(
+      finishListenerTurn(runtime, lease, {
+        stopReason: "cancelled",
+        socket: createOpenTransport(),
+        conversationId: "local-conv-worker",
+      }).finished,
+    ).toBe(true);
+    expect(runtime.turnLifecycle.kind).toBe("cancelling");
+    expect(() =>
+      runtime.turnLifecycle.begin({
+        origin: "message",
+        workingDirectory: process.cwd(),
+      }),
+    ).toThrow("Cannot begin a turn while lifecycle is cancelling");
+    finishBackendCancellation?.();
+    await waitFor(() => runtime.turnLifecycle.kind === "idle");
   });
 
   test("parked user messages wait while a notification queued during the interrupt drains", async () => {

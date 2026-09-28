@@ -488,7 +488,9 @@ export async function handleAbortMessageInput(
   }
 
   const cancellation = scopedRuntime.turnLifecycle.requestCancellation({
-    waitForExternalSettlement: hasActiveTurn && Boolean(scopedRuntime.agentId),
+    // Worker conversations have no agent ID, but their conversation-wide
+    // backend cancellation must finish before a replacement turn can start.
+    waitForExternalSettlement: hasActiveTurn,
   });
   // Interrupt semantics: the current turn stops and the user's queued messages
   // park until resume_queue or the user's next message. System items (task
