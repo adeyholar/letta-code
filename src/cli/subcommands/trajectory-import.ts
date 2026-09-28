@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
+  copyFile,
   lstat,
   mkdtemp,
   readdir,
@@ -186,7 +187,7 @@ async function discoverSessionFiles(root: string): Promise<string[]> {
       if (entry.isDirectory()) {
         await visit(path);
       } else if (entry.isFile() && entry.name.endsWith(".json")) {
-        files.push(relative(root, path));
+        files.push(relative(root, path).split(sep).join("/"));
         if (files.length > MAX_SESSIONS)
           fail(`Trajectory folder exceeds ${MAX_SESSIONS} JSON files`);
       } else {
@@ -470,21 +471,22 @@ export async function runTrajectoryImportSubcommand(
     if (!result.hasManifest) {
       // The existing history cohorter reads a manifest relative to the export
       // directory. A scratch overlay indexes the original files without writing
-      // into or duplicating the supplied trajectory folder.
+      // into the supplied trajectory folder.
       manifestDir = await mkdtemp(join(tmpdir(), "letta-import-index-"));
       for (const source of new Set(
-        result.manifestEntries.map((entry) => entry.file.split(sep)[0]),
+        result.manifestEntries.map((entry) => entry.file.split("/")[0]),
       )) {
         if (!source) fail("Invalid trajectory source directory");
-        await symlink(
-          join(dir, source),
-          join(manifestDir, source),
-          source.endsWith(".json")
-            ? "file"
-            : process.platform === "win32"
-              ? "junction"
-              : "dir",
-        );
+        if (source.endsWith(".json")) {
+          // Windows file symlinks can require elevated privileges.
+          await copyFile(join(dir, source), join(manifestDir, source));
+        } else {
+          await symlink(
+            join(dir, source),
+            join(manifestDir, source),
+            process.platform === "win32" ? "junction" : "dir",
+          );
+        }
       }
       await writeFile(
         join(manifestDir, "manifest.json"),
