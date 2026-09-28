@@ -4,8 +4,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { LocalStore } from "./local-store";
 
-test("agent-free conversations retain explicit null owner and parent through transcript reload", () => {
-  const storageDir = mkdtempSync(join(tmpdir(), "letta-agent-free-store-"));
+test("local worker conversations retain explicit null owner and parent through transcript reload", () => {
+  const storageDir = mkdtempSync(join(tmpdir(), "letta-conversation-store-"));
   try {
     const store = new LocalStore("agent-default", {
       storageDir,

@@ -18,8 +18,10 @@ async function collect(stream: AsyncIterable<unknown>) {
   return chunks;
 }
 
-test("headless agent-free turns run on conversation model/system with null run and message owner", async () => {
-  const storageDir = mkdtempSync(join(tmpdir(), "letta-headless-agent-free-"));
+test("headless conversation turns use their own model/system with null run and message owner", async () => {
+  const storageDir = mkdtempSync(
+    join(tmpdir(), "letta-conversation-headless-"),
+  );
   let observed: ProviderTurnInput | undefined;
   const adapter: ProviderStreamAdapter = {
     async *stream(input) {

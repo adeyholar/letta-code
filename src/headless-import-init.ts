@@ -146,7 +146,7 @@ export function importInitVerify(state: ImportInitState): void {
     }
   }
   if (!successfulWorkers)
-    throw new Error("No successful agent-free Workflow workers");
+    throw new Error("No successful local Workflow workers");
   const manifest = JSON.parse(
     readFileSync(join(state.manifestDir, "manifest.json"), "utf8"),
   ) as {

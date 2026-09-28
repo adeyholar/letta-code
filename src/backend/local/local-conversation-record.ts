@@ -100,7 +100,7 @@ export function updateLocalConversationRecord(
   }
   if (typeof bodyRecord.model === "string" || bodyRecord.model === null) {
     if (current.agent_id === null && bodyRecord.model === null) {
-      throw new Error("Agent-free conversation requires a model");
+      throw new Error("Worker conversation requires a model");
     }
     next.model =
       bodyRecord.model === null
@@ -129,7 +129,7 @@ export function updateLocalConversationRecord(
   return next;
 }
 
-/** Keep a fork's model and explicit agent-free lineage with its source. */
+/** Keep a fork's model and explicit parent lineage with its source. */
 export function localConversationForkBody(
   source: StoredConversation,
   targetAgentId: string | null,

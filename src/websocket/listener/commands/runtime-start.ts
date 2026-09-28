@@ -251,7 +251,7 @@ async function resolveRuntimeStartConversation(
   if (hasString(parsed.conversation_id)) {
     if (parsed.conversation_id === "default") {
       if (!agent) {
-        throw new Error("Agent-free runtimes require a persisted conversation");
+        throw new Error("Worker runtimes require a persisted conversation");
       }
       return buildDefaultConversation(agent);
     }
@@ -273,11 +273,11 @@ async function resolveRuntimeStartConversation(
       | undefined;
     if (!body || !hasString(body.model) || typeof body.system !== "string") {
       throw new Error(
-        "Agent-free conversation creation requires body.model and body.system",
+        "Worker conversation creation requires body.model and body.system",
       );
     }
     // Cloud uses the ephemeral endpoint; the local backend persists the same
-    // agent-free conversation directly. Never synthesize a worker agent.
+    // worker conversation directly. Never synthesize a worker agent.
     const conversation =
       resolveBackendMode() === "local" && !createEphemeral
         ? await backend.createConversation({

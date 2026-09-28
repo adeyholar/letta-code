@@ -1,5 +1,5 @@
 /**
- * Native local Workflow workers. Each call starts a persisted agent-free
+ * Native local Workflow workers. Each call starts its own persisted
  * conversation in this process's local App Server; no SDK (whose query() rejects
  * local harnesses), Cloud backend, or synthetic worker agent is involved.
  */

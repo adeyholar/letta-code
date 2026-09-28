@@ -716,10 +716,10 @@ export class LocalStore {
         throw new LocalBackendNotFoundError("Agent", String(parentAgentId));
       }
       if (typeof bodyRecord.model !== "string" || !bodyRecord.model) {
-        throw new Error("Agent-free conversation requires a model");
+        throw new Error("Worker conversation requires a model");
       }
       if (typeof bodyRecord.system !== "string") {
-        throw new Error("Agent-free conversation requires a system prompt");
+        throw new Error("Worker conversation requires a system prompt");
       }
     } else {
       if (this.strictAgentAccess && !this.agents.has(agentId)) {
@@ -3116,7 +3116,7 @@ export class LocalStore {
       agentId === undefined ? this.defaultAgentId : agentId;
     const existing = this.findConversation(conversationId, resolvedAgentId);
     if (existing) return existing;
-    // Never fabricate agent-free conversations without explicit parent provenance.
+    // Never fabricate worker conversations without explicit parent provenance.
     if (resolvedAgentId === null) {
       throw new LocalBackendNotFoundError("Conversation", conversationId);
     }

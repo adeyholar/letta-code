@@ -165,7 +165,7 @@ function conversationExecutionConfig(
     typeof record.model !== "string" ||
     typeof record.system !== "string"
   ) {
-    throw new Error("Agent-free conversation is missing execution settings");
+    throw new Error("Worker conversation is missing execution settings");
   }
   return {
     id: conversation.id,
@@ -586,7 +586,7 @@ export class HeadlessBackend implements Backend {
     this.runSeq += 1;
     const createdAt = timestampForRun(this.runSeq);
     // SDK Run still types agent_id as string. The local wire/persisted value
-    // intentionally remains null for agent-free conversations.
+    // intentionally remains null for worker conversations.
     const run = {
       id: `${this.runIdPrefix}${this.runSeq}`,
       agent_id: agentId,

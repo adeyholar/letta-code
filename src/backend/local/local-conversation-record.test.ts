@@ -5,7 +5,7 @@ import {
   updateLocalConversationRecord,
 } from "./local-conversation-record";
 
-test("agent-free local records retain lineage and execution settings on update", () => {
+test("local worker conversations retain lineage and execution settings on update", () => {
   const created = createLocalConversationRecord("local-conv-worker", null, 1, {
     parent_agent_id: "agent-parent",
     is_subagent: true,

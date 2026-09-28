@@ -1,7 +1,7 @@
 /**
  * Workflow tool: launches a workflow script that orchestrates multiple
  * subagents deterministically. The engine lives in @/tools/workflow; each
- * agent() call in the script runs in a persisted agent-free conversation.
+ * agent() call in the script runs in its own persisted conversation.
  * Cloud uses the Agent SDK; local execution uses the native App Server.
  *
  * The run happens in the background: the tool validates the script, registers
@@ -112,7 +112,7 @@ async function resolveParentAgentId(
     args.parentScope?.conversationId ?? getConversationId();
   if (!parentAgentId?.startsWith("agent-")) {
     if (conversationId && conversationId !== "default") {
-      // The invoking conversation may itself be agent-free (a worker of an
+      // The invoking conversation may itself be a worker (of an
       // outer workflow); its parent supplies the lineage then.
       const conversation =
         resolveBackendMode() === "local"
