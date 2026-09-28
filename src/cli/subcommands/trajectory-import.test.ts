@@ -345,4 +345,39 @@ describe("trajectory import through persistent local backend", () => {
     );
     expect(backend.listAllLocalAgentConversations(other.id)).toEqual([]);
   });
+
+  test("a crashed staging directory is not loaded or counted as an import", async () => {
+    const { root, dir, backend, agent } = await fixture({ sessions: 1 });
+    const prior = await backend.createConversation({ agent_id: agent.id });
+    const pending = join(
+      root,
+      "backend",
+      "conversations",
+      `${Buffer.from("conversation:local-conv-staged").toString("base64url")}.pending`,
+    );
+    await mkdir(pending);
+    await writeFile(
+      join(pending, "conversation.json"),
+      JSON.stringify({
+        ...prior,
+        id: "local-conv-staged",
+        tags: ["trajectory-import:crashed"],
+      }),
+    );
+    const reopened = new LocalBackend({
+      storageDir: join(root, "backend"),
+      memfsEnabled: false,
+      executionMode: "deterministic",
+    });
+    const conversations = (await reopened.listConversations({
+      agent_id: agent.id,
+    })) as unknown as Array<{ id: string }>;
+    expect(
+      conversations.some(
+        (conversation) => conversation.id === "local-conv-staged",
+      ),
+    ).toBe(false);
+    const result = await importTrajectories(dir, agent.id, reopened);
+    expect(result.sessions).toBe(1);
+  });
 });
